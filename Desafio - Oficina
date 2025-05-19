@@ -1,0 +1,99 @@
+-- drop database oficina;
+-- create database oficina;
+-- use oficina;
+
+create table cliente(
+id_cliente int auto_increment primary key,
+nome_cliente varchar (45),
+tel_cliente varchar (09)
+);
+
+insert into cliente (nome_cliente, tel_cliente) values
+('Telma da Silva', '11999999'),
+('Roberto Costa de Souza', '123456789'),
+('Marcos Cruz Tello', '987654321'),
+('Carla Almeida de Freitas', '55667788'),
+('Maria Santos', '091833391');
+
+select * from cliente;
+
+create table modelo_carro(
+id_mcarro int not null primary key,
+placa_carro varchar (06),
+modelo_carro varchar (10),
+mcarro_id_cliente int,
+constraint fk_mcarro_id_cliente foreign key (mcarro_id_cliente) references cliente(id_cliente)
+);
+
+insert into modelo_carro (id_mcarro, placa_carro, modelo_carro, mcarro_id_cliente) values
+(1,'ABC123','Creta',1),
+(2,'DEF123', 'Celta',2),
+(3,'ACB339', 'Fiat Uno',3),
+(4,'KBA123', 'Kicks',4),
+(5,'ZPO093', 'Versa',5);
+
+
+create table equipe_mecanico(
+id_emecanico int not null primary key,
+nome_mecanico varchar (55),
+especialidade_mecanico varchar (55)
+);
+
+INSERT INTO EQUIPE_MECANICO (ID_EMECANICO, NOME_MECANICO) VALUES
+(1, 'Jose Ribeiro Santos'),
+(2, 'Talles Souza Koller'),
+(3, 'Gilberto Braga'),
+(4, 'Marcos Antonio de Souza');
+
+
+create table valor_servico(
+id_vservico int not null primary key,
+valor_base float not null,
+tipo_servico varchar (200)
+);
+
+insert into valor_servico (id_vservico, valor_base, tipo_servico) values
+(1, 1000, 'Manutenção preventiva'),
+(2, 3000, 'Troca de peças externas'),
+(3, 800, 'Alinhamento de Pneus'),
+(4, 3500, 'Troca de peças internas'),
+(5, 600, 'Troca de pneus e óleo');
+
+create table OS(
+id_os int not null primary key,
+data_emissao varchar (09),
+valor_os float,
+status_os enum('Servico em andamento', 'Pendente pagamento', 'Servico Cancelado', 'Servico concluido'),
+data_entrega varchar (09),
+tipo_servico varchar (200),
+os_id_vservico int,
+os_id_cliente int,
+os_id_mcarro int,
+os_id_emecanicos int,
+constraint fk_os_id_vservico foreign key (os_id_vservico) references valor_servico(id_vservico),
+constraint fk_os_id_cliente foreign key (os_id_cliente) references cliente(id_cliente),
+constraint fk_os_id_mcarro foreign key (os_id_mcarro) references modelo_carro (id_mcarro),
+constraint fk_os_id_emecanicos foreign key (os_id_emecanicos) references equipe_mecanico(id_emecanico)
+);
+
+insert into OS (id_os, valor_os, status_os, tipo_servico, os_id_cliente) values
+(1,1000,'Servico em andamento', 'Manutenção preventiva',1),
+(2, 3000, 'Pendente pagamento', 'Troca de peças externas',2),
+(3, 800, 'Servico Cancelado', 'Alinhamento de Pneus',3),
+(4, 3500, 'Servico concluido', 'Troca de peças internas',4),
+(5, 600, 'Servico em andamento', 'Troca de pneus e óleo',5);
+
+-- cliente e modelo de carro
+select id_cliente, nome_cliente, modelo_carro, placa_carro from cliente
+inner join modelo_carro on mcarro_id_cliente=id_cliente
+order by nome_cliente;
+
+-- clientes com servicos no valor superior a 1000 e está em andamento
+select status_os, valor_os, nome_cliente from OS
+inner join cliente on os_id_cliente = id_cliente
+where status_os = 'Servico em andamento' and valor_os >= 1000;
+
+-- total vendido na oficina por tipo de servico
+select tipo_servico, sum(valor_os) as total_vendido, count(tipo_servico) as quantidade_servicos from os
+where not status_os = 'Servico cancelado'
+group by tipo_servico;
